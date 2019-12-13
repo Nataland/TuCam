@@ -25,6 +25,7 @@ dependencies:
   video_player: ^0.10.0
   e2e: "^0.2.0"
   image_gallery_saver: ^1.2.2
+  image: ^2.1.4
 
 dev_dependencies:
   flutter_test:
