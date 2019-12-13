@@ -222,19 +222,21 @@ class _CameraHomeState extends State<CameraHome>
   }
 
   Future<Uint8List> getLayeredImage(String filePath) async {
-    Offset defaultOffset = Offset(0.0, 0.0);
-    Paint defaultPaint = Paint();
-
     Uint8List frameData = (await rootBundle.load(photoFrameFileName)).buffer.asUint8List();
-    File file = File(filePath);
-    Uint8List photoData = file.readAsBytesSync();
-    ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
-    Canvas canvas = Canvas(pictureRecorder);
-    canvas.drawImage(await loadImage(photoData), defaultOffset, defaultPaint);
-    canvas.drawImage(await loadImage(frameData), defaultOffset, defaultPaint);
-    var image = await pictureRecorder.endRecording().toImage(1000, 1000);
-    ByteData data = await image.toByteData(format: ui.ImageByteFormat.png);
-    return data.buffer.asUint8List();
+    Uint8List cameraData = File(filePath).readAsBytesSync();
+
+    // Format camera image
+    img.Image cameraImage = img.decodeImage(cameraData);
+    cameraImage = img.copyRotate(cameraImage, 90);
+    img.flip(cameraImage, img.Flip.horizontal);
+
+    // Format frame image
+    img.Image frameImage = img.decodeImage(frameData);
+    frameImage = img.copyResize(frameImage, width: cameraImage.width, height: cameraImage.height);
+
+    // Draw frame image on top of camera image
+    img.drawImage(cameraImage, frameImage);
+    return img.encodePng(cameraImage);
   }
 
   Future<ui.Image> loadImage(List<int> img) async {
