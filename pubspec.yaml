@@ -11,12 +11,14 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^0.1.2
   camera:
-  path_provider: ^0.5.0
+  path_provider: ^1.1.0
   video_player: ^0.10.0
   e2e: "^0.2.0"
   image_gallery_saver: ^1.2.2
   image: ^2.1.4
   flutter_launcher_icons: "^0.7.3"
+  image_picker:
+  photofilters: ^1.0.5
 
 dev_dependencies:
   flutter_test:

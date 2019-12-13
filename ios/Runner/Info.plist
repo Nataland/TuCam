@@ -47,6 +47,8 @@
     <string>Can I use the mic please?</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Can I save to the photo library please?</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Can I open the photo library please?</string>
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>

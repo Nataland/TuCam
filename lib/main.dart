@@ -6,9 +6,20 @@ import 'package:flutter/material.dart';
 import 'home.dart';
 
 class CameraApp extends StatelessWidget {
+  final millennialPink = Colors.pink[100];
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.light().copyWith(
+        primaryColor: millennialPink,
+        buttonTheme: ButtonThemeData(
+          buttonColor: millennialPink,
+        ),
+        iconTheme: IconThemeData(
+          color: millennialPink,
+        )
+      ),
       home: CameraHome(defaultCamera),
     );
   }

@@ -7,7 +7,10 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tuwei_camera/editor.dart';
+import 'package:tuwei_camera/frames.dart';
 import 'package:tuwei_camera/main.dart';
 import 'package:video_player/video_player.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
@@ -23,17 +26,15 @@ class CameraHome extends StatefulWidget {
   }
 }
 
-class _CameraHomeState extends State<CameraHome>
-    with WidgetsBindingObserver {
-  static final numberOfFrames = 29;
-  static final photoFrameFileNames = List<String>.generate(numberOfFrames, (int index) => 'assets/frame' + index.toString() + '.png');
+class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
   CameraController controller;
   String imagePath;
   String videoPath;
-  String photoFrameFileName = photoFrameFileNames[0];
+  String photoFrameFileName = PhotoFrameSelectorWidget.photoFrameFileNames[0];
   VideoPlayerController videoController;
   VoidCallback videoPlayerListener;
   bool enableAudio = true;
+  FrameFilterState frameFilterState = FrameFilterState.CHOOSING_FRAME;
 
   @override
   void initState() {
@@ -70,25 +71,30 @@ class _CameraHomeState extends State<CameraHome>
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        backgroundColor: Colors.pink[100],
         title: const Text('土味相机'),
       ),
       body: Column(
         children: <Widget>[
           _cameraPreviewWidget(),
           Expanded(
-              child: Column(
-                children: <Widget>[
-                  _photoFrameSelectorWidget(),
-                  Expanded(
-                    child: _captureControlRowWidget(),
-                  ),
-                ],
-              )
+            child: Column(
+              children: <Widget>[
+                PhotoFrameSelectorWidget(setFrame: changeFrame),
+                Expanded(
+                  child: _captureControlRowWidget(),
+                ),
+              ],
+            )
           ),
         ],
       ),
     );
+  }
+
+  void changeFrame(String filename) {
+    setState(() {
+      photoFrameFileName = filename;
+    });
   }
 
   /// Display the preview from the camera (or a message if the preview is not available).
@@ -106,8 +112,8 @@ class _CameraHomeState extends State<CameraHome>
       return Stack(
         children: <Widget>[
           AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
-              child: CameraPreview(controller),
+            aspectRatio: controller.value.aspectRatio,
+            child: CameraPreview(controller),
           ),
           AspectRatio(
             aspectRatio: controller.value.aspectRatio,
@@ -128,43 +134,50 @@ class _CameraHomeState extends State<CameraHome>
       mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
+        IconButton(
+          icon: Icon(
+            Icons.collections,
+          ),
+          onPressed: onOpenPhotoGallery,
+        ),
         RaisedButton(
-          padding: EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24.0),
           child: Icon(
             Icons.camera_alt,
             color: Colors.white,
           ),
           shape: CircleBorder(),
-          color: Colors.pink[100],
-          onPressed: controller != null &&
-              controller.value.isInitialized &&
-              !controller.value.isRecordingVideo
+          onPressed: controller != null && controller.value.isInitialized && !controller.value.isRecordingVideo
               ? onTakePictureButtonPressed
               : null,
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.photo_filter,
+          ),
+          onPressed: onToggleFilterOrFrame,
         ),
       ],
     );
   }
 
-  Widget _photoFrameWidget(String fileName) {
-    return GestureDetector(
-      onTap: () { setState(() {photoFrameFileName = fileName;});},
-      child: Image(
-        fit: BoxFit.contain,
-        image: AssetImage(fileName),
-      ),
-    );
+  Future onOpenPhotoGallery() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    // Open photo editor
+    if (image != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => PhotoEditor(image)));
+    }
   }
 
-  Widget _photoFrameSelectorWidget() {
-    return Container(
-      height: 60.0,
-      child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: numberOfFrames,
-          itemBuilder: (BuildContext context, int index) => _photoFrameWidget(photoFrameFileNames[index])
-      ),
-    );
+  void onToggleFilterOrFrame() {
+    setState(() {
+      if (frameFilterState == FrameFilterState.CHOOSING_FRAME) {
+        frameFilterState = FrameFilterState.CHOOSING_FILTER;
+      } else {
+        frameFilterState = FrameFilterState.CHOOSING_FRAME;
+      }
+    });
   }
 
   String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
@@ -209,6 +222,7 @@ class _CameraHomeState extends State<CameraHome>
           var layeredImage = await getLayeredImage(filePath);
           ImageGallerySaver.saveImage(layeredImage);
         }
+
         _save();
 
         setState(() {
@@ -275,4 +289,8 @@ class _CameraHomeState extends State<CameraHome>
     logError(e.code, e.description);
     showInSnackBar('Error: ${e.code}\n${e.description}');
   }
+}
+
+enum FrameFilterState {
+  CHOOSING_FRAME, CHOOSING_FILTER
 }
