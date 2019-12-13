@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class PhotoFrameSelectorWidget extends StatelessWidget {
   static final numberOfFrames = 29;
   static final photoFrameFileNames =
-  List<String>.generate(numberOfFrames, (int index) => 'assets/frame' + index.toString() + '.png');
+  List<String>.generate(numberOfFrames, (int index) => 'assets/frames/frame' + index.toString() + '.png');
   final Function(String) setFrame;
 
   PhotoFrameSelectorWidget({Key key, this.setFrame}) : super(key: key);

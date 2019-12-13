@@ -10,7 +10,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tuwei_camera/editor.dart';
-import 'package:tuwei_camera/frames.dart';
+import 'package:tuwei_camera/filter_selector.dart';
+import 'package:tuwei_camera/frame_selector.dart';
 import 'package:tuwei_camera/main.dart';
 import 'package:video_player/video_player.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
@@ -77,15 +78,14 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
         children: <Widget>[
           _cameraPreviewWidget(),
           Expanded(
-            child: Column(
-              children: <Widget>[
-                PhotoFrameSelectorWidget(setFrame: changeFrame),
-                Expanded(
-                  child: _captureControlRowWidget(),
-                ),
-              ],
-            )
-          ),
+              child: Column(
+            children: <Widget>[
+              PhotoFrameSelectorWidget(setFrame: changeFrame),
+              Expanded(
+                child: _captureControlRowWidget(),
+              ),
+            ],
+          )),
         ],
       ),
     );
@@ -153,7 +153,7 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
         ),
         IconButton(
           icon: Icon(
-            Icons.photo_filter,
+            frameFilterState == FrameFilterState.CHOOSING_FILTER ? Icons.gradient : Icons.photo_filter,
           ),
           onPressed: onToggleFilterOrFrame,
         ),
@@ -289,8 +289,4 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
     logError(e.code, e.description);
     showInSnackBar('Error: ${e.code}\n${e.description}');
   }
-}
-
-enum FrameFilterState {
-  CHOOSING_FRAME, CHOOSING_FILTER
 }
