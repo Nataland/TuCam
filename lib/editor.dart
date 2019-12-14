@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:photofilters/photofilters.dart';
 import 'package:image/image.dart' as img;
 
 import 'filter_selector.dart';
+import 'frame.dart';
 import 'frame_selector.dart';
 
 enum FrameFilterState { CHOOSING_FRAME, CHOOSING_FILTER }
@@ -25,10 +27,13 @@ class PhotoEditor extends StatefulWidget {
 class _PhotoEditorState extends State<PhotoEditor> {
   File uploadedImage;
   Uint8List imageBytes;
-  String photoFrameFileName = PhotoFrameSelectorWidget.photoFrameFileNames[0];
+  String photoFrameFileName = FrameSelector.photoFrameFileNames[0];
   FrameFilterState frameFilterState = FrameFilterState.CHOOSING_FRAME;
   Filter selectedFilter = NoFilter();
+
   _PhotoEditorState(this.uploadedImage);
+
+  final fileNameNotifier = ValueNotifier(FrameSelector.photoFrameFileNames[0]);
 
   @override
   Widget build(BuildContext context) {
@@ -49,17 +54,16 @@ class _PhotoEditorState extends State<PhotoEditor> {
                   loader: Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
-                    )
-                  )
+                    ),
+                  ),
                 ),
-//                child: imageBytes == null
-//                  ? Image.file(uploadedImage)
-//                  : Image.memory(imageBytes,),
-                aspectRatio: 3/4,
+                aspectRatio: 3 / 4,
               ),
-              Image(
-                fit: BoxFit.cover,
-                image: AssetImage(photoFrameFileName),
+              ValueListenableBuilder<String>(
+                valueListenable: fileNameNotifier,
+                builder: (context, value, child) {
+                  return FrameImage(fileNameNotifier);
+                },
               ),
             ],
           ),
@@ -67,8 +71,13 @@ class _PhotoEditorState extends State<PhotoEditor> {
             child: Column(
               children: <Widget>[
                 frameFilterState == FrameFilterState.CHOOSING_FILTER
-                  ? PhotoFilterSelectorWidget(uploadedImage: uploadedImage, setFilter: changeFilter,)
-                  : PhotoFrameSelectorWidget(setFrame: changeFrame,),
+                    ? FilterSelector(
+                        uploadedImage: uploadedImage,
+                        setFilter: changeFilter,
+                      )
+                    : FrameSelector(
+                        setFrame: changeFrame,
+                      ),
                 IconButton(
                   icon: Icon(
                     frameFilterState == FrameFilterState.CHOOSING_FILTER ? Icons.gradient : Icons.photo_filter,
@@ -83,23 +92,13 @@ class _PhotoEditorState extends State<PhotoEditor> {
     );
   }
 
-  void changeFrame(String filename) {
-    setState(() {
-      photoFrameFileName = filename;
-    });
+  void changeFrame(String frameName) {
+    fileNameNotifier.value = frameName;
   }
 
   void changeFilter(Filter filter) {
     setState(() {
       selectedFilter = filter;
-
-//      imageBytes = applyFilter(
-//      <String, dynamic>{
-//        "filter": filter,
-//        "image": img.decodeImage(imageBytes),
-//        "filename": basename(uploadedImage.path)
-//      }
-//      );
     });
   }
 
@@ -113,4 +112,3 @@ class _PhotoEditorState extends State<PhotoEditor> {
     });
   }
 }
-

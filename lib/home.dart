@@ -1,20 +1,20 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image/image.dart' as img;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:image/image.dart' as img;
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:tuwei_camera/editor.dart';
-import 'package:tuwei_camera/filter_selector.dart';
-import 'package:tuwei_camera/frame_selector.dart';
-import 'package:tuwei_camera/main.dart';
-import 'package:video_player/video_player.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+
+import 'editor.dart';
+import 'frame_selector.dart';
+import 'frame.dart';
+import 'main.dart';
 
 class CameraHome extends StatefulWidget {
   final CameraDescription defaultCamera;
@@ -29,13 +29,9 @@ class CameraHome extends StatefulWidget {
 
 class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
   CameraController controller;
-  String imagePath;
-  String videoPath;
-  String photoFrameFileName = PhotoFrameSelectorWidget.photoFrameFileNames[0];
-  VideoPlayerController videoController;
-  VoidCallback videoPlayerListener;
-  bool enableAudio = true;
+  String photoFrameFileName = FrameSelector.photoFrameFileNames[0];
   FrameFilterState frameFilterState = FrameFilterState.CHOOSING_FRAME;
+  final fileNameNotifier = ValueNotifier(FrameSelector.photoFrameFileNames[0]);
 
   @override
   void initState() {
@@ -78,23 +74,22 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
         children: <Widget>[
           _cameraPreviewWidget(),
           Expanded(
-              child: Column(
-            children: <Widget>[
-              PhotoFrameSelectorWidget(setFrame: changeFrame),
-              Expanded(
-                child: _captureControlRowWidget(),
-              ),
-            ],
-          )),
+            child: Column(
+              children: <Widget>[
+                FrameSelector(setFrame: changeFrame),
+                Expanded(
+                  child: _captureControlRowWidget(),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  void changeFrame(String filename) {
-    setState(() {
-      photoFrameFileName = filename;
-    });
+  void changeFrame(String fileName) {
+    fileNameNotifier.value = fileName;
   }
 
   /// Display the preview from the camera (or a message if the preview is not available).
@@ -117,10 +112,7 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
           ),
           AspectRatio(
             aspectRatio: controller.value.aspectRatio,
-            child: Image(
-              fit: BoxFit.cover,
-              image: AssetImage(photoFrameFileName),
-            ),
+            child: FrameImage(fileNameNotifier),
           ),
         ],
       );
@@ -193,7 +185,7 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
     controller = CameraController(
       cameraDescription,
       ResolutionPreset.medium,
-      enableAudio: enableAudio,
+      enableAudio: false,
     );
 
     // If the controller is updated then update the UI.
@@ -224,13 +216,7 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
         }
 
         _save();
-
-        setState(() {
-          imagePath = filePath;
-          videoController?.dispose();
-          videoController = null;
-        });
-        if (filePath != null) showInSnackBar('Picture saved to $filePath');
+//        if (filePath != null) showInSnackBar('Picture saved to $filePath');
       }
     });
   }

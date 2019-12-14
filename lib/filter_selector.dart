@@ -1,27 +1,25 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:photofilters/photofilters.dart';
-import 'package:image/image.dart' as img;
 
-class PhotoFilterSelectorWidget extends StatelessWidget {
+class FilterSelector extends StatelessWidget {
   static final numberOfFilters = 29;
   static final filters = presetFiltersList;
   final Function(Filter) setFilter;
   final File uploadedImage;
 
-  PhotoFilterSelectorWidget({Key key, this.setFilter, this.uploadedImage}) : super(key: key);
+  FilterSelector({Key key, this.setFilter, this.uploadedImage}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 60.0,
       child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: filters.length,
-          itemBuilder: (BuildContext context, int index) => _photoFilterWidget(context, index)),
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        itemBuilder: (BuildContext context, int index) => _photoFilterWidget(context, index),
+      ),
     );
   }
 
@@ -47,7 +45,7 @@ class PhotoFilterSelectorWidget extends StatelessWidget {
             right: side,
             bottom: side,
             left: index == 0 ? side : BorderSide.none,
-          )
+          ),
         ),
       ),
     );

@@ -18,7 +18,7 @@ class CameraApp extends StatelessWidget {
         ),
         iconTheme: IconThemeData(
           color: millennialPink,
-        )
+        ),
       ),
       home: CameraHome(defaultCamera),
     );
@@ -33,10 +33,8 @@ Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
     cameras = await availableCameras();
-    final frontCamera = cameras.firstWhere(
-      (o) => o.lensDirection == CameraLensDirection.front,
-      orElse: () => cameras.first
-    );
+    final frontCamera =
+        cameras.firstWhere((o) => o.lensDirection == CameraLensDirection.front, orElse: () => cameras.first);
     defaultCamera = frontCamera;
   } on CameraException catch (e) {
     logError(e.code, e.description);
@@ -44,5 +42,4 @@ Future<void> main() async {
   runApp(CameraApp());
 }
 
-void logError(String code, String message) =>
-    print('Error: $code\nError Message: $message');
+void logError(String code, String message) => print('Error: $code\nError Message: $message');
