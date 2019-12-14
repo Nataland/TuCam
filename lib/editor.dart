@@ -3,7 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
+import 'package:flutter/services.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:photofilters/photofilters.dart';
 import 'package:image/image.dart' as img;
 
@@ -30,6 +31,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
   String photoFrameFileName = FrameSelector.photoFrameFileNames[0];
   FrameFilterState frameFilterState = FrameFilterState.CHOOSING_FRAME;
   Filter selectedFilter = NoFilter();
+  img.Image imageInDisplay;
 
   _PhotoEditorState(this.uploadedImage);
 
@@ -37,25 +39,30 @@ class _PhotoEditorState extends State<PhotoEditor> {
 
   @override
   Widget build(BuildContext context) {
+    if (imageInDisplay == null) {
+      imageInDisplay = img.decodeImage(uploadedImage.readAsBytesSync()); // initialize with no filter first
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Photo Editor'),
+        title: const Text('Editor'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.check,
+              color: Colors.white,
+            ),
+            onPressed: saveImage,
+          ),
+        ],
       ),
       body: Column(
         children: <Widget>[
           Stack(
             children: <Widget>[
               AspectRatio(
-                child: PhotoFilter(
-                  image: img.decodeImage(uploadedImage.readAsBytesSync()),
-                  filename: basename(uploadedImage.path),
-                  filter: selectedFilter,
-                  fit: BoxFit.cover,
-                  loader: Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
-                    ),
-                  ),
+                child: Image.memory(
+                  img.encodePng(imageInDisplay),
                 ),
                 aspectRatio: 3 / 4,
               ),
@@ -96,9 +103,30 @@ class _PhotoEditorState extends State<PhotoEditor> {
     fileNameNotifier.value = frameName;
   }
 
-  void changeFilter(Filter filter) {
+  void saveImage() async {
+    _save() async {
+      selectedFilter.apply(uploadedImage.readAsBytesSync());
+      var layeredImage = await getLayeredImage();
+      ImageGallerySaver.saveImage(layeredImage);
+    }
+
+    _save();
+  }
+
+  Future<Uint8List> getLayeredImage() async {
+    // Load frame and adjust frame
+    Uint8List frameData = (await rootBundle.load(photoFrameFileName)).buffer.asUint8List();
+    img.Image frameImage = img.decodeImage(frameData);
+    frameImage = img.copyResize(frameImage, width: imageInDisplay.width, height: imageInDisplay.height);
+
+    // Draw frame image on top of camera image
+    img.drawImage(imageInDisplay, frameImage);
+    return img.encodePng(imageInDisplay);
+  }
+
+  void changeFilter(img.Image processedImage) {
     setState(() {
-      selectedFilter = filter;
+      imageInDisplay = processedImage;
     });
   }
 

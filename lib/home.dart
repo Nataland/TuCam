@@ -13,7 +13,6 @@ import 'package:path_provider/path_provider.dart';
 
 import 'editor.dart';
 import 'frame_selector.dart';
-import 'frame.dart';
 import 'main.dart';
 
 class CameraHome extends StatefulWidget {
@@ -31,7 +30,6 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
   CameraController controller;
   String photoFrameFileName = FrameSelector.photoFrameFileNames[0];
   FrameFilterState frameFilterState = FrameFilterState.CHOOSING_FRAME;
-  final fileNameNotifier = ValueNotifier(FrameSelector.photoFrameFileNames[0]);
 
   @override
   void initState() {
@@ -89,7 +87,9 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
   }
 
   void changeFrame(String fileName) {
-    fileNameNotifier.value = fileName;
+    setState(() {
+      photoFrameFileName = fileName;
+    });
   }
 
   /// Display the preview from the camera (or a message if the preview is not available).
@@ -112,7 +112,7 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
           ),
           AspectRatio(
             aspectRatio: controller.value.aspectRatio,
-            child: FrameImage(fileNameNotifier),
+            child: Image.asset(photoFrameFileName),
           ),
         ],
       );
@@ -216,7 +216,7 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
         }
 
         _save();
-//        if (filePath != null) showInSnackBar('Picture saved to $filePath');
+//        if (filePath != null) showInSnackBar('Picture saved to $filePath'); need to show a prettier snackbar
       }
     });
   }
