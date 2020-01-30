@@ -18,6 +18,7 @@ dependencies:
   image: ^2.1.4
   flutter_launcher_icons: "^0.7.3"
   image_picker:
+  share:
   photofilters: ^1.0.5
 
 dev_dependencies:

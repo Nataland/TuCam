@@ -10,6 +10,7 @@ import 'package:image/image.dart' as img;
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tuwei_camera/strings.dart';
 
 import 'editor.dart';
 import 'frame_selector.dart';
@@ -140,16 +141,20 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
           ),
           shape: CircleBorder(),
           onPressed: controller != null && controller.value.isInitialized && !controller.value.isRecordingVideo
-              ? onTakePictureButtonPressed
-              : null,
+            ? onTakePictureButtonPressed
+            : null,
         ),
         IconButton(
-          icon: Icon(
-            frameFilterState == FrameFilterState.CHOOSING_FILTER ? Icons.gradient : Icons.photo_filter,
-          ),
-          onPressed: onToggleFilterOrFrame,
+          icon: Icon(Icons.switch_camera),
+          onPressed: flipCamera,
         ),
       ],
+    );
+  }
+
+  void flipCamera() {
+    onNewCameraSelected(
+      controller.description.lensDirection == CameraLensDirection.front ? secondaryCamera : defaultCamera,
     );
   }
 
@@ -172,7 +177,11 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
     });
   }
 
-  String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
+  String timestamp() =>
+    DateTime
+      .now()
+      .millisecondsSinceEpoch
+      .toString();
 
   void showInSnackBar(String message) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
@@ -212,13 +221,20 @@ class _CameraHomeState extends State<CameraHome> with WidgetsBindingObserver {
       if (mounted) {
         _save() async {
           var layeredImage = await getLayeredImage(filePath);
-          ImageGallerySaver.saveImage(layeredImage);
+          String ok = await ImageGallerySaver.saveImage(layeredImage);
+          await showSaveSnackBar(ok);
         }
 
         _save();
-//        if (filePath != null) showInSnackBar('Picture saved to $filePath'); need to show a prettier snackbar
+        if (filePath != null) {
+          showSaveSnackBar(IMAGE_SAVED);
+        }
       }
     });
+  }
+
+  Future showSaveSnackBar(String message) async {
+    showInSnackBar(message);
   }
 
   Future<Uint8List> getLayeredImage(String filePath) async {

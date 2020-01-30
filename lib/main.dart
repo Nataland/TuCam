@@ -13,6 +13,9 @@ class CameraApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.light().copyWith(
         primaryColor: millennialPink,
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: Colors.blue[200],
+        ),
         buttonTheme: ButtonThemeData(
           buttonColor: millennialPink,
         ),
@@ -27,6 +30,7 @@ class CameraApp extends StatelessWidget {
 
 List<CameraDescription> cameras = [];
 CameraDescription defaultCamera;
+CameraDescription secondaryCamera;
 
 Future<void> main() async {
   // Fetch the available cameras before initializing the app.
@@ -35,7 +39,10 @@ Future<void> main() async {
     cameras = await availableCameras();
     final frontCamera =
         cameras.firstWhere((o) => o.lensDirection == CameraLensDirection.front, orElse: () => cameras.first);
+    final backCamera =
+        cameras.firstWhere((o) => o.lensDirection == CameraLensDirection.back, orElse: () => cameras.first);
     defaultCamera = frontCamera;
+    secondaryCamera = backCamera;
   } on CameraException catch (e) {
     logError(e.code, e.description);
   }

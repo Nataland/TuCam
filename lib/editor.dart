@@ -7,8 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:photofilters/photofilters.dart';
 import 'package:image/image.dart' as img;
+import 'package:tuwei_camera/strings.dart';
 
-import 'filter_selector.dart';
 import 'frame.dart';
 import 'frame_selector.dart';
 
@@ -52,7 +52,9 @@ class _PhotoEditorState extends State<PhotoEditor> {
               Icons.check,
               color: Colors.white,
             ),
-            onPressed: saveImage,
+            onPressed: () {
+              saveImage(context);
+            },
           ),
         ],
       ),
@@ -77,19 +79,23 @@ class _PhotoEditorState extends State<PhotoEditor> {
           Expanded(
             child: Column(
               children: <Widget>[
-                frameFilterState == FrameFilterState.CHOOSING_FILTER
-                    ? FilterSelector(
-                        uploadedImage: uploadedImage,
-                        setFilter: changeFilter,
-                      )
-                    : FrameSelector(
-                        setFrame: changeFrame,
-                      ),
-                IconButton(
-                  icon: Icon(
-                    frameFilterState == FrameFilterState.CHOOSING_FILTER ? Icons.gradient : Icons.photo_filter,
-                  ),
-                  onPressed: onToggleFilterOrFrame,
+                // disabling editing because it is too laggy
+//                frameFilterState == FrameFilterState.CHOOSING_FILTER
+//                    ? FilterSelector(
+//                        uploadedImage: uploadedImage,
+//                        setFilter: changeFilter,
+//                      )
+//                    : FrameSelector(
+//                        setFrame: changeFrame,
+//                      ),
+//                IconButton(
+//                  icon: Icon(
+//                    frameFilterState == FrameFilterState.CHOOSING_FILTER ? Icons.gradient : Icons.photo_filter,
+//                  ),
+//                  onPressed: onToggleFilterOrFrame,
+//                ),
+                FrameSelector(
+                  setFrame: changeFrame,
                 ),
               ],
             ),
@@ -103,7 +109,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     fileNameNotifier.value = frameName;
   }
 
-  void saveImage() async {
+  void saveImage(BuildContext context) async {
     _save() async {
       selectedFilter.apply(uploadedImage.readAsBytesSync());
       var layeredImage = await getLayeredImage();
@@ -111,6 +117,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     }
 
     _save();
+    Scaffold.of(context).showSnackBar(SnackBar(content: Text(IMAGE_SAVED)));
   }
 
   Future<Uint8List> getLayeredImage() async {
